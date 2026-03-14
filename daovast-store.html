@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NEXUS Store — 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080810;--bg2:#0e0e1a;--card:#12121f;--card2:#1a1a2e;
+  --border:#ffffff12;--border2:#ffffff1e;
+  --text:#f0f0ff;--text2:#a0a0c0;--text3:#50506a;
+  --accent:#7c6aff;--green:#10b981;--red:#ef4444;--gold:#f59e0b;
+  --font:'Syne',sans-serif;--body:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+  --shadow:0 4px 24px #0008;--shadow2:0 12px 48px #000c;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button{cursor:pointer;border:none;font-family:var(--body)}
+input,select{font-family:var(--body)}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+.fi{animation:fi .35s ease both}
+.su{animation:su .4s cubic-bezier(.16,1,.3,1) both}
+.sc{animation:sc .3s cubic-bezier(.16,1,.3,1) both}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes su{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sc{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+#root{min-height:100vh}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const PRODUCTS = [
+  { id:1, name:"Quantum Oversized Hoodie", brand:"UrbanX", category:"clothing", subcategory:"tops", price:2499, originalPrice:3999, rating:4.7, reviews:1284, image:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80", colors:["#1a1a2e","#e94560","#ffffff"], sizes:["XS","S","M","L","XL","XXL"], fabric:"Cotton Fleece", fit:"Oversized", occasion:"Casual", inStock:true, badge:"TRENDING", deliveryETA:"Tomorrow, 11 AM", soldCount:2341 },
+  { id:2, name:"Neo Slim Cargo Pants", brand:"Zephyr", category:"clothing", subcategory:"bottoms", price:1899, originalPrice:2799, rating:4.5, reviews:876, image:"https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&q=80", colors:["#2d3436","#6c5ce7","#b2bec3"], sizes:["28","30","32","34","36"], fabric:"Ripstop Nylon", fit:"Slim", occasion:"Streetwear", inStock:true, badge:"NEW", deliveryETA:"Today, 7 PM", soldCount:987 },
+  { id:3, name:"Aura Linen Co-ord Set", brand:"Softé", category:"clothing", subcategory:"sets", price:3299, originalPrice:4500, rating:4.8, reviews:2103, image:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80", colors:["#ffeaa7","#dfe6e9","#fab1a0"], sizes:["XS","S","M","L","XL"], fabric:"Pure Linen", fit:"Regular", occasion:"Brunch/Travel", inStock:true, badge:"BESTSELLER", deliveryETA:"Tomorrow, 11 AM", soldCount:4521 },
+  { id:4, name:"Velocity Sports Jacket", brand:"DriMax", category:"clothing", subcategory:"outerwear", price:4199, originalPrice:5999, rating:4.6, reviews:654, image:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80", colors:["#0984e3","#2d3436","#00b894"], sizes:["S","M","L","XL","XXL"], fabric:"Micro-mesh", fit:"Athletic", occasion:"Sports", inStock:true, badge:"30% OFF", deliveryETA:"Day after, 2 PM", soldCount:1123 },
+  { id:5, name:"Ethereal Silk Dress", brand:"LuxeFlow", category:"clothing", subcategory:"dresses", price:5499, originalPrice:7999, rating:4.9, reviews:3421, image:"https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&q=80", colors:["#fd79a8","#a29bfe","#55efc4"], sizes:["XS","S","M","L"], fabric:"Silk Crepe", fit:"Regular", occasion:"Formal/Party", inStock:true, badge:"LOVED", deliveryETA:"Tomorrow, 11 AM", soldCount:8762 },
+  { id:6, name:"Apex Denim Jacket", brand:"IndoBlue", category:"clothing", subcategory:"outerwear", price:2799, originalPrice:3499, rating:4.4, reviews:912, image:"https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?w=400&q=80", colors:["#74b9ff","#2d3436"], sizes:["S","M","L","XL","XXL"], fabric:"Stretch Denim", fit:"Regular", occasion:"Casual", inStock:false, badge:"SOLD OUT", deliveryETA:"Notify Me", soldCount:3214 },
+  { id:7, name:"NovaPod X Pro Earbuds", brand:"SoundSphere", category:"gadgets", subcategory:"audio", price:8999, originalPrice:12999, rating:4.8, reviews:5621, image:"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80", processor:"H2 Chip", battery:"36hr total", color:["#ffffff","#1a1a2e","#e17055"], inStock:true, badge:"EDITOR'S PICK", deliveryETA:"Today, 9 PM", soldCount:12456, frequentlyBought:[8,10] },
+  { id:8, name:"Zenith Pro Smartwatch", brand:"TimeX", category:"gadgets", subcategory:"wearables", price:15999, originalPrice:22999, rating:4.7, reviews:4102, image:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80", storage:"32GB", processor:"Snapdragon W5+", battery:"7 days", color:["#2d3436","#d63031","#fdcb6e"], inStock:true, badge:"HOT", deliveryETA:"Tomorrow, 11 AM", soldCount:7823, frequentlyBought:[7,10] },
+  { id:9, name:"OmniTab S12 Ultra", brand:"NovaTech", category:"gadgets", subcategory:"tablets", price:42999, originalPrice:54999, rating:4.6, reviews:2341, image:"https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=400&q=80", ram:"12GB", storage:"256GB", processor:"Dimensity 9300", battery:"10000mAh", color:["#636e72","#2d3436"], inStock:true, badge:"NEW LAUNCH", deliveryETA:"Day after, 10 AM", soldCount:3421, frequentlyBought:[11,10] },
+  { id:10, name:"HyperCharge 65W Hub", brand:"VoltX", category:"gadgets", subcategory:"accessories", price:1499, originalPrice:2499, rating:4.5, reviews:8901, image:"https://images.unsplash.com/photo-1618410320928-25228d811631?w=400&q=80", battery:"65W GaN", color:["#dfe6e9","#2d3436"], inStock:true, badge:"MUST HAVE", deliveryETA:"Today, 9 PM", soldCount:34521, frequentlyBought:[7,8] },
+  { id:11, name:"PixelMaster 4K Cam", brand:"OptiLens", category:"gadgets", subcategory:"cameras", price:67999, originalPrice:84999, rating:4.9, reviews:1203, image:"https://images.unsplash.com/photo-1606986628253-eb18b15e81e2?w=400&q=80", storage:"128GB card", processor:"EXPEED 7", battery:"2000 shots", color:["#2d3436"], inStock:true, badge:"PRO PICK", deliveryETA:"Day after, 10 AM", soldCount:2341 },
+  { id:12, name:"CloudBook Air M3", brand:"NovaTech", category:"gadgets", subcategory:"laptops", price:89999, originalPrice:109999, rating:4.8, reviews:3421, image:"https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&q=80", ram:"16GB", storage:"512GB SSD", processor:"M3 Pro", battery:"22hr", color:["#b2bec3","#2d3436","#f9ca24"], inStock:true, badge:"TOP RATED", deliveryETA:"Tomorrow, 11 AM", soldCount:5623 },
+];
+
+const BANNERS = [
+  { id:1, title:"The Future of Fashion", subtitle:"AR Try-On Now Available", cta:"Shop Clothing", bg:"linear-gradient(135deg,#0f0c29,#302b63,#24243e)", accent:"#a29bfe", category:"clothing" },
+  { id:2, title:"Next-Gen Gadgets", subtitle:"Up to 40% Off on Pro Tech", cta:"Explore Gadgets", bg:"linear-gradient(135deg,#0a0a0a,#1a1a2e,#16213e)", accent:"#00d4ff", category:"gadgets" },
+  { id:3, title:"Summer Essentials", subtitle:"New Arrivals Every Monday", cta:"See What's New", bg:"linear-gradient(135deg,#f093fb,#f5576c,#fda085)", accent:"#ffffff", category:"clothing" },
+];
+
+let USERS_DB = [
+  { email:"demo@nexus.com", password:"demo123", name:"Rahul Sharma", phone:"+91 98765 43210", avatar:"RS", addresses:[{id:1,label:"Home",line:"42, Sector 7, Alwar",city:"Alwar",state:"Rajasthan",pin:"301001"}] }
+];
+
+const fp = p => "₹"+p.toLocaleString("en-IN");
+const disc = (o,c) => Math.round(((o-c)/o)*100);
+
+// ── ICONS ─────────────────────────────────────────────────────────────────────
+const I = {
+  Search:()=><svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  Cart:({n})=><span style={{position:"relative",display:"inline-flex"}}><svg width="21" height="21" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>{n>0&&<b style={{position:"absolute",top:"-7px",right:"-7px",background:"#e94560",color:"#fff",borderRadius:"50%",width:"17px",height:"17px",fontSize:"9px",display:"flex",alignItems:"center",justifyContent:"center"}}>{n}</b>}</span>,
+  Heart:({f})=><svg width="17" height="17" fill={f?"#e94560":"none"} stroke={f?"#e94560":"currentColor"} strokeWidth="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+  Filter:()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>,
+  Check:()=><svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>,
+  X:()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  Lock:()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+  Back:()=><svg width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>,
+  Arr:()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>,
+  Truck:()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  Cam:()=><svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+  Up:()=><svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>,
+  WA:()=><svg width="15" height="15" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>,
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const Spin = () => <div style={{width:"26px",height:"26px",border:"3px solid #fff2",borderTop:"3px solid var(--accent)",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>;
+
+const Bdg = ({t}) => {
+  const m={TRENDING:"#7c6aff",NEW:"#10b981",BESTSELLER:"#f59e0b","30% OFF":"#ef4444",LOVED:"#ec4899","SOLD OUT":"#555","EDITOR'S PICK":"#06b6d4",HOT:"#f97316","NEW LAUNCH":"#8b5cf6","MUST HAVE":"#10b981","PRO PICK":"#0ea5e9","TOP RATED":"#f59e0b"};
+  return <span style={{background:m[t]||"#7c6aff",color:"#fff",fontSize:"9px",fontWeight:"700",letterSpacing:".08em",fontFamily:"var(--mono)",padding:"3px 7px",borderRadius:"4px",textTransform:"uppercase"}}>{t}</span>;
+};
+
+const Stars = ({r,n}) => (
+  <div style={{display:"flex",alignItems:"center",gap:"3px"}}>
+    {[1,2,3,4,5].map(s=><span key={s} style={{color:s<=Math.floor(r)?"#f59e0b":"#fff2",fontSize:"11px"}}>★</span>)}
+    {n&&<span style={{color:"var(--text3)",fontSize:"10px",marginLeft:"2px"}}>{n.toLocaleString()}</span>}
+  </div>
+);
+
+const Inp = ({label,type="text",value,onChange,placeholder}) => (
+  <div>
+    {label&&<label style={{fontSize:"11px",color:"var(--text2)",marginBottom:"5px",display:"block",fontWeight:"500"}}>{label}</label>}
+    <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
+      style={{width:"100%",background:"var(--card2)",border:"1px solid var(--border2)",borderRadius:"9px",padding:"9px 12px",color:"var(--text)",fontSize:"13px",outline:"none",transition:"border-color .2s"}}
+      onFocus={e=>e.target.style.borderColor="var(--accent)"}
+      onBlur={e=>e.target.style.borderColor="var(--border2)"}/>
+  </div>
+);
+
+// ── NAVBAR ────────────────────────────────────────────────────────────────────
+function Navbar({cart,user,onAuth,onCartClick,onSearch,onNav,wish,page}) {
+  const [q,setQ]=useState("");
+  const [sugg,setSugg]=useState([]);
+  const [scrolled,setScrolled]=useState(false);
+  useEffect(()=>{
+    const h=()=>setScrolled(window.scrollY>40);
+    window.addEventListener("scroll",h);
+    return()=>window.removeEventListener("scroll",h);
+  },[]);
+  const hq=v=>{setQ(v);setSugg(v.length>1?PRODUCTS.filter(p=>p.name.toLowerCase().includes(v.toLowerCase())||p.brand.toLowerCase().includes(v.toLowerCase())).slice(0,5):[]);};
+  return (
+    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:scrolled?"rgba(8,8,16,.96)":"transparent",backdropFilter:scrolled?"blur(20px)":"none",borderBottom:scrolled?"1px solid var(--border)":"none",transition:"all .3s",padding:"0 18px"}}>
+      <div style={{background:"var(--accent)",height:"26px",display:"flex",alignItems:"center",overflow:"hidden",margin:"0 -18px"}}>
+        <div style={{display:"flex",animation:"mq 22s linear infinite",whiteSpace:"nowrap",gap:"60px",fontSize:"10px",fontWeight:"700",letterSpacing:".1em",color:"#fff",fontFamily:"var(--mono)",paddingLeft:"20px"}}>
+          {[...Array(4)].map((_,i)=>(
+            <span key={i} style={{display:"flex",gap:"60px"}}>
+              <span>⚡ FREE DELIVERY above ₹999</span><span>🔥 40% OFF Gadgets</span><span>✨ AR TRY-ON LIVE</span><span>💳 EMI ₹499/mo</span><span>🚀 SAME DAY · Alwar & Jaipur</span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:"12px",height:"60px",maxWidth:"1380px",margin:"0 auto"}}>
+        <button onClick={()=>onNav("home")} style={{background:"none",display:"flex",alignItems:"center",gap:"7px",flexShrink:0}}>
+          <div style={{width:"29px",height:"29px",background:"var(--accent)",borderRadius:"7px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",fontWeight:"800",fontFamily:"var(--font)",color:"#fff"}}>N</div>
+          <span style={{fontFamily:"var(--font)",fontWeight:"800",fontSize:"18px",letterSpacing:"-.02em",color:"var(--text)"}}>NEXUS</span>
+        </button>
+        <div style={{display:"flex",gap:"2px"}}>
+          {[["home","Home"],["clothing","Clothing"],["gadgets","Gadgets"]].map(([k,l])=>(
+            <button key={k} onClick={()=>onNav(k)} style={{background:page===k?"var(--card2)":"none",color:page===k?"var(--accent)":"var(--text2)",padding:"5px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:"500",transition:"all .2s"}}>{l}</button>
+          ))}
+          <button onClick={()=>onNav("deals")} style={{background:page==="deals"?"var(--card2)":"none",color:page==="deals"?"var(--accent)":"var(--text2)",padding:"5px 12px",borderRadius:"8px",fontSize:"12px",fontWeight:"500",transition:"all .2s"}}>🔥 Deals</button>
+        </div>
+        <div style={{flex:1,position:"relative",maxWidth:"360px",margin:"0 auto"}}>
+          <div style={{display:"flex",alignItems:"center",background:"var(--card)",border:"1px solid var(--border2)",borderRadius:"11px",padding:"0 11px",gap:"7px"}}>
+            <I.Search/>
+            <input value={q} onChange={e=>hq(e.target.value)} placeholder="Search products, brands…"
+              onKeyDown={e=>{if(e.key==="Enter"){onSearch(q);setSugg([]);setQ("");}}}
+              style={{background:"none",border:"none",color:"var(--text)",padding:"9px 0",fontSize:"12px",flex:1,outline:"none"}}/>
+            <button onClick={()=>onNav("vs")} style={{background:"none",color:"var(--accent)",padding:"2px",opacity:.8}}><I.Cam/></button>
+          </div>
+          {sugg.length>0&&(
+            <div style={{position:"absolute",top:"108%",left:0,right:0,background:"var(--card2)",border:"1px solid var(--border2)",borderRadius:"12px",overflow:"hidden",zIndex:200,boxShadow:"var(--shadow2)"}}>
+              {sugg.map(p=>(
+                <button key={p.id} onClick={()=>{onSearch(p.name);setSugg([]);setQ("");}}
+                  style={{display:"flex",alignItems:"center",gap:"9px",padding:"9px 12px",width:"100%",background:"none",color:"var(--text)",textAlign:"left"}}
+                  onMouseEnter={e=>e.currentTarget.style.background="var(--card)"}
+                  onMouseLeave={e=>e.currentTarget.style.background="none"}>
+                  <img src={p.image} style={{width:"30px",height:"30px",borderRadius:"5px",objectFit:"cover"}} alt=""/>
+                  <div><div style={{fontSize:"12px",fontWeight:"600"}}>{p.name}</div><div style={{fontSize:"10px",color:"var(--text3)"}}>{fp(p.price)}</div></div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:"2px",flexShrink:0}}>
+          <button onClick={()=>onNav("wishlist")} style={{background:"none",color:wish.length?"#e94560":"var(--text2)",padding:"7px",borderRadius:"8px",display:"flex",position:"relative"}}>
+            <I.Heart f={wish.length>0}/>
+            {wish.length>0&&<span style={{position:"absolute",top:"3px",right:"3px",width:"7px",height:"7px",background:"#e94560",borderRadius:"50%"}}/>}
+          </button>
+          <button onClick={onCartClick} style={{background:"none",color:"var(--text2)",padding:"7px",borderRadius:"8px",display:"flex"}}><I.Cart n={cart.length}/></button>
+          {user?(
+            <button onClick={()=>onNav("account")} style={{background:"var(--card2)",border:"1px solid var(--border2)",borderRadius:"10px",padding:"5px 10px",display:"flex",alignItems:"center",gap:"6px"}}>
+              <div style={{width:"25px",height:"25px",background:"var(--accent)",borderRadius:"5px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:"700",color:"#fff"}}>{user.avatar}</div>
+              <span style={{fontSize:"12px",fontWeight:"500",maxWidth:"68px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name.split(" ")[0]}</span>
+            </button>
+          ):(
+            <button onClick={onAuth} style={{background:"var(--accent)",color:"#fff",padding:"7px 15px",borderRadius:"9px",fontSize:"12px",fontWeight:"600"}}>Sign In</button>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function Auth({onClose,onLogin}) {
+  const [mode,setMode]=useState("login");
+  const [f,setF]=useState({name:"",email:"",phone:"",pw:"",cpw:""});
+  const [err,setErr]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [sp,setSp]=useState(false);
+  const upd=k=>v=>setF(p=>({...p,[k]:v}));
+
+  const submit=async()=>{
+    setErr("");setLoading(true);
+    await new Promise(r=>setTimeout(r,900));
+    if(mode==="login"){
+      const u=USERS_DB.find(u=>u.email===f.email&&u.password===f.pw);
+      if(u){onLogin(u);onClose();}
+      else setErr("Wrong credentials. Try demo@nexus.com / demo123");
+    } else {
+      if(!f.name||!f.email||!f.pw){setErr("All fields required");setLoading(false);return;}
+      if(f.pw!==f.cpw){setErr("Passwords don't match");setLoading(false);return;}
+      if(f.pw.length<6){setErr("Min 6 characters");setLoading(false);return;}
+      const nu={email:f.email,password:f.pw,name:f.name,phone:f.phone,avatar:f.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2),addresses:[]};
+      USERS_DB.push(nu);onLogin(nu);onClose();
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.82)",backdropFilter:"blur(14px)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}} onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="sc" style={{background:"var(--card)",border:"1px solid var(--border2)",borderRadius:"20px",padding:"32px 28px",width:"100%",maxWidth:"390px",position:"relative"}}>
+        <button onClick={onClose} style={{position:"absolute",top:"13px",right:"13px",background:"var(--card2)",border:"none",color:"var(--text2)",width:"28px",height:"28px",borderRadius:"7px",display:"flex",alignItems:"center",justifyContent:"center"}}><I.X/></button>
+        <div style={{textAlign:"center",marginBottom:"22px"}}>
+          <div style={{width:"42px",height:"42px",background:"var(--accent)",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",fontWeight:"800",fontFamily:"var(--font)",margin:"0 auto 9px",color:"#fff"}}>N</div>
+          <h2 style={{fontFamily:"var(--font)",fontSize:"19px",fontWeight:"700"}}>{mode==="login"?"Welcome back":"Create Account"}</h2>
+          <p style={{color:"var(--text3)",fontSize:"11px",marginTop:"3px"}}>{mode==="login"?"Sign in to continue":"Join millions of smart shoppers"}</p>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"16px"}}>
+          {["🔵 Google","💳 PhonePe"].map(p=>(
+            <button key={p} style={{background:"var(--card2)",border:"1px solid var(--border2)",color:"var(--text)",padding:"8px",borderRadius:"8px",fontSize:"12px",fontWeight:"500",transition:"border-color .2s"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor="var(--accent)"}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="var(--border2)"}>{p}</button>
+          ))}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:"9px",marginBottom:"16px"}}>
+          <div style={{flex:1,height:"1px",background:"var(--border)"}}/><span style={{color:"var(--text3)",fontSize:"10px"}}>or email</span><div style={{flex:1,height:"1px",background:"var(--border)"}}/>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+          {mode==="signup"&&<Inp label="Full Name" value={f.name} onChange={upd("name")} placeholder="Rahul Sharma"/>}
+          <Inp label="Email" type="email" value={f.email} onChange={upd("email")} placeholder="you@example.com"/>
+          {mode==="signup"&&<Inp label="Phone (optional)" value={f.phone} onChange={upd("phone")} placeholder="+91 98765 43210"/>}
+          <div style={{position:"relative"}}>
+            <Inp label="Password" type={sp?"text":"password"} value={f.pw} onChange={upd("pw")} placeholder="Min 6 characters"/>
+            <button onClick={()=>setSp(!sp)} style={{position:"absolute",right:"11px",bottom:"8px",background:"none",color:"var(--text3)",fontSize:"10px"}}>{sp?"Hide":"Show"}</button>
+          </div>
+          {mode==="signup"&&<Inp label="Confirm Password" type="password" value={f.cpw} onChange={upd("cpw")} placeholder="Re-enter password"/>}
+        </div>
+        {mode==="login"&&<button style={{background:"none",color:"var(--accent)",fontSize:"10px",marginTop:"6px",padding:0}}>Forgot password?</button>}
+        {err&&<div style={{background:"#ef444412",border:"1px solid #ef444428",borderRadius:"7px",padding:"8px 10px",fontSize:"11px",color:"#ef4444",marginTop:"10px"}}>{err}</div>}
+        <button onClick={submit} disabled={loading} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"12px",borderRadius:"10px",fontSize:"13px",fontWeight:"600",fontFamily:"var(--font)",marginTop:"16px",display:"flex",alignItems:"center",justifyContent:"center",gap:"7px",opacity:loading?.7:1}}>
+          {loading?<Spin/>:<>{mode==="login"?"Sign In →":"Create Account →"}</>}
+        </button>
+        <p style={{textAlign:"center",fontSize:"11px",color:"var(--text3)",marginTop:"12px"}}>
+          {mode==="login"?"No account?":"Have account?"}{" "}
+          <button onClick={()=>{setMode(mode==="login"?"signup":"login");setErr("");}} style={{background:"none",color:"var(--accent)",fontWeight:"600"}}>{mode==="login"?"Sign up free":"Sign in"}</button>
+        </p>
+        <p style={{textAlign:"center",fontSize:"10px",color:"var(--text3)",marginTop:"9px",display:"flex",alignItems:"center",justifyContent:"center",gap:"3px"}}><I.Lock/> 256-bit SSL · PCI DSS Secured</p>
+      </div>
+    </div>
+  );
+}
+
+// ── HERO ──────────────────────────────────────────────────────────────────────
+function Hero({onShop}) {
+  const [a,setA]=useState(0);
+  useEffect(()=>{const t=setInterval(()=>setA(x=>(x+1)%BANNERS.length),5000);return()=>clearInterval(t);},[]);
+  const b=BANNERS[a];
+  return (
+    <div style={{position:"relative",height:"480px",overflow:"hidden",borderRadius:"0 0 28px 28px",marginTop:"86px"}}>
+      <div style={{position:"absolute",inset:0,background:b.bg,transition:"background 1s"}}/>
+      <div style={{position:"absolute",top:"-30px",right:"9%",width:"350px",height:"350px",background:b.accent,borderRadius:"50%",filter:"blur(90px)",opacity:.13,animation:"float 7s ease-in-out infinite"}}/>
+      <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",padding:"0 6%"}}>
+        <div className="fi" key={a} style={{maxWidth:"500px"}}>
+          <div style={{color:b.accent,fontFamily:"var(--mono)",fontSize:"10px",letterSpacing:".2em",textTransform:"uppercase",marginBottom:"10px",display:"flex",alignItems:"center",gap:"6px"}}>
+            <span style={{width:"20px",height:"2px",background:b.accent,display:"inline-block"}}/>NEXUS 2026
+          </div>
+          <h1 style={{fontFamily:"var(--font)",fontSize:"clamp(32px,4vw,58px)",fontWeight:"800",lineHeight:"1.06",letterSpacing:"-.03em",marginBottom:"12px",color:"#fff"}}>{b.title}</h1>
+          <p style={{color:"rgba(255,255,255,.56)",fontSize:"16px",marginBottom:"24px"}}>{b.subtitle}</p>
+          <div style={{display:"flex",gap:"10px",flexWrap:"wrap"}}>
+            <button onClick={()=>onShop(b.category)} style={{background:b.accent,color:b.accent==="#ffffff"?"#000":"#fff",padding:"12px 24px",borderRadius:"10px",fontSize:"14px",fontWeight:"700",fontFamily:"var(--font)",display:"flex",alignItems:"center",gap:"6px"}}>
+              {b.cta} <I.Arr/>
+            </button>
+            <button onClick={()=>onShop("all")} style={{background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.17)",color:"#fff",padding:"12px 24px",borderRadius:"10px",fontSize:"14px",fontWeight:"600",backdropFilter:"blur(8px)"}}>Browse All</button>
+          </div>
+          <div style={{display:"flex",gap:"16px",marginTop:"24px",flexWrap:"wrap"}}>
+            {["Free Returns","Secure Pay","Same Day Delivery"].map(t=>(
+              <span key={t} style={{display:"flex",alignItems:"center",gap:"5px",fontSize:"11px",color:"rgba(255,255,255,.42)"}}><span style={{color:b.accent}}>✓</span>{t}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{position:"absolute",bottom:"18px",left:"50%",transform:"translateX(-50%)",display:"flex",gap:"6px"}}>
+        {BANNERS.map((_,i)=>(
+          <button key={i} onClick={()=>setA(i)} style={{width:i===a?"20px":"7px",height:"7px",borderRadius:"4px",background:i===a?b.accent:"rgba(255,255,255,.27)",border:"none",transition:"all .3s"}}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── PRODUCT CARD ──────────────────────────────────────────────────────────────
+function PCard({p,onView,onCart,wish,onWish}) {
+  const [hov,setHov]=useState(false);
+  const iw=wish.includes(p.id);
+  return (
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"16px",overflow:"hidden",transition:"all .3s",transform:hov?"translateY(-3px)":"none",boxShadow:hov?"var(--shadow2)":"var(--shadow)",cursor:"pointer"}}>
+      <div style={{position:"relative",aspectRatio:"1",overflow:"hidden",background:"var(--card2)"}} onClick={()=>onView(p)}>
+        <img src={p.image} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",transition:"transform .5s",transform:hov?"scale(1.04)":"scale(1)"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,.5),transparent)",opacity:hov?1:0,transition:"opacity .3s"}}/>
+        <div style={{position:"absolute",top:"9px",left:"9px"}}><Bdg t={p.badge}/></div>
+        <button onClick={e=>{e.stopPropagation();onWish(p.id)}} style={{position:"absolute",top:"9px",right:"9px",width:"31px",height:"31px",background:"rgba(0,0,0,.54)",backdropFilter:"blur(6px)",borderRadius:"7px",display:"flex",alignItems:"center",justifyContent:"center",opacity:hov||iw?1:0,transition:"all .2s",border:"none",color:iw?"#e94560":"white"}}>
+          <I.Heart f={iw}/>
+        </button>
+        <div style={{position:"absolute",bottom:"9px",left:"9px",right:"9px",opacity:hov?1:0,transform:hov?"translateY(0)":"translateY(8px)",transition:"all .3s"}}>
+          <button onClick={e=>{e.stopPropagation();onCart(p);}} disabled={!p.inStock} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"8px",borderRadius:"8px",fontSize:"12px",fontWeight:"600",opacity:p.inStock?1:.5,border:"none",cursor:p.inStock?"pointer":"not-allowed"}}>
+            {p.inStock?"Quick Add ⚡":"Notify Me"}
+          </button>
+        </div>
+        {p.originalPrice>p.price&&<div style={{position:"absolute",bottom:"9px",right:"9px",background:"#ef4444",color:"#fff",fontSize:"9px",fontWeight:"700",padding:"2px 6px",borderRadius:"5px",opacity:hov?0:1,transition:"opacity .3s"}}>-{disc(p.originalPrice,p.price)}%</div>}
+      </div>
+      <div style={{padding:"12px 13px"}} onClick={()=>onView(p)}>
+        <div style={{fontSize:"10px",color:"var(--text3)",fontFamily:"var(--mono)",marginBottom:"3px",textTransform:"uppercase",letterSpacing:".05em"}}>{p.brand}</div>
+        <div style={{fontWeight:"600",fontSize:"13px",marginBottom:"5px",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",lineHeight:"1.35"}}>{p.name}</div>
+        <Stars r={p.rating} n={p.reviews}/>
+        <div style={{display:"flex",alignItems:"center",gap:"7px",marginTop:"6px"}}>
+          <span style={{fontWeight:"700",fontSize:"15px",fontFamily:"var(--mono)"}}>{fp(p.price)}</span>
+          {p.originalPrice>p.price&&<span style={{fontSize:"10px",color:"var(--text3)",textDecoration:"line-through"}}>{fp(p.originalPrice)}</span>}
+        </div>
+        {(p.colors||p.color)&&(
+          <div style={{display:"flex",gap:"4px",marginTop:"6px"}}>
+            {(p.colors||p.color||[]).slice(0,4).map((c,i)=><div key={i} style={{width:"12px",height:"12px",borderRadius:"50%",background:c,border:"1.5px solid rgba(255,255,255,.14)"}}/>)}
+          </div>
+        )}
+        <div style={{display:"flex",alignItems:"center",gap:"3px",marginTop:"6px",fontSize:"10px",color:"var(--green)"}}><I.Truck/> {p.deliveryETA}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── PRODUCT DETAIL ────────────────────────────────────────────────────────────
+function PDetail({p,onBack,onCart,wish,onWish,all}) {
+  const [sz,setSz]=useState(p.sizes?.[1]||null);
+  const [col,setCol]=useState((p.colors||p.color||[])[0]||null);
+  const [qty,setQty]=useState(1);
+  const [tab,setTab]=useState("details");
+  const [ar,setAr]=useState(false);
+  const [added,setAdded]=useState(false);
+  const iw=wish.includes(p.id);
+  const fb=all.filter(a=>p.frequentlyBought?.includes(a.id));
+  const add=()=>{onCart({...p,sz,col,qty});setAdded(true);setTimeout(()=>setAdded(false),2000);};
+  return (
+    <div className="fi" style={{maxWidth:"1120px",margin:"0 auto",padding:"26px 20px"}}>
+      <button onClick={onBack} style={{background:"var(--card2)",border:"1px solid var(--border)",color:"var(--text2)",padding:"6px 13px",borderRadius:"8px",fontSize:"12px",display:"flex",alignItems:"center",gap:"5px",marginBottom:"20px"}}>
+        <I.Back/> Back
+      </button>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"32px",alignItems:"start"}}>
+        <div>
+          <div style={{borderRadius:"20px",overflow:"hidden",aspectRatio:"1",background:"var(--card2)",position:"relative"}}>
+            {ar?(
+              <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"13px",background:"var(--bg2)"}}>
+                <div style={{fontSize:"44px",animation:"float 3s ease-in-out infinite"}}>🪄</div>
+                <p style={{color:"var(--text2)",fontSize:"13px"}}>AR Try-On Active</p>
+                <div style={{padding:"7px 16px",background:"var(--accent)",borderRadius:"7px",fontSize:"11px",color:"#fff",animation:"pulse 2s infinite"}}>Camera Active…</div>
+                <button onClick={()=>setAr(false)} style={{background:"none",color:"var(--text3)",fontSize:"11px",border:"none",cursor:"pointer"}}>Exit AR</button>
+              </div>
+            ):<img src={p.image} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>}
+            <div style={{position:"absolute",top:"13px",left:"13px"}}><Bdg t={p.badge}/></div>
+            {p.category==="clothing"&&(
+              <button onClick={()=>setAr(!ar)} style={{position:"absolute",bottom:"13px",right:"13px",background:"rgba(0,0,0,.7)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,.17)",color:"#fff",padding:"8px 13px",borderRadius:"8px",fontSize:"11px",fontWeight:"600",display:"flex",alignItems:"center",gap:"5px",cursor:"pointer"}}>
+                🪄 AR Try-On
+              </button>
+            )}
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:"6px",marginTop:"10px",flexWrap:"wrap"}}>
+            {["Front","Back","Detail","360°"].map(v=>(
+              <button key={v} style={{background:"var(--card2)",border:"1px solid var(--border)",color:"var(--text3)",padding:"5px 10px",borderRadius:"6px",fontSize:"10px",fontFamily:"var(--mono)"}}>{v}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div style={{fontSize:"10px",color:"var(--text3)",fontFamily:"var(--mono)",textTransform:"uppercase",letterSpacing:".1em",marginBottom:"5px"}}>{p.brand} · {p.category}</div>
+          <h1 style={{fontFamily:"var(--font)",fontSize:"23px",fontWeight:"700",marginBottom:"9px",lineHeight:"1.25"}}>{p.name}</h1>
+          <Stars r={p.rating} n={p.reviews}/>
+          <div style={{display:"flex",alignItems:"baseline",gap:"9px",margin:"13px 0"}}>
+            <span style={{fontFamily:"var(--mono)",fontSize:"25px",fontWeight:"700"}}>{fp(p.price)}</span>
+            {p.originalPrice>p.price&&<>
+              <span style={{fontSize:"14px",color:"var(--text3)",textDecoration:"line-through"}}>{fp(p.originalPrice)}</span>
+              <span style={{background:"#ef444418",color:"#ef4444",padding:"2px 7px",borderRadius:"5px",fontSize:"11px",fontWeight:"700"}}>-{disc(p.originalPrice,p.price)}%</span>
+            </>}
+          </div>
+          <div style={{background:"#10b98112",border:"1px solid #10b98127",borderRadius:"8px",padding:"8px 12px",display:"flex",alignItems:"center",gap:"6px",marginBottom:"13px"}}>
+            <I.Truck/><span style={{fontSize:"12px",color:"var(--green)"}}>{p.inStock?`✓ In Stock · ${p.deliveryETA}`:"⚠ Out of Stock"}</span>
+          </div>
+          {p.sizes&&(
+            <div style={{marginBottom:"13px"}}>
+              <div style={{fontSize:"10px",fontWeight:"600",color:"var(--text2)",marginBottom:"6px",display:"flex",justifyContent:"space-between"}}>
+                <span>SIZE</span><button style={{background:"none",color:"var(--accent)",fontSize:"10px",border:"none",cursor:"pointer"}}>Size Guide →</button>
+              </div>
+              <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                {p.sizes.map(s=>(
+                  <button key={s} onClick={()=>setSz(s)} style={{padding:"6px 12px",borderRadius:"7px",fontSize:"11px",fontWeight:"600",fontFamily:"var(--mono)",border:`1.5px solid ${sz===s?"var(--accent)":"var(--border2)"}`,background:sz===s?"#7c6aff18":"var(--card2)",color:sz===s?"var(--accent)":"var(--text2)",transition:"all .2s",cursor:"pointer"}}>{s}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          {(p.colors||p.color)&&(
+            <div style={{marginBottom:"16px"}}>
+              <div style={{fontSize:"10px",fontWeight:"600",color:"var(--text2)",marginBottom:"6px"}}>COLOR</div>
+              <div style={{display:"flex",gap:"8px"}}>
+                {(p.colors||p.color||[]).map((c,i)=>(
+                  <button key={i} onClick={()=>setCol(c)} style={{width:"28px",height:"28px",borderRadius:"50%",background:c,border:col===c?"3px solid var(--accent)":"2px solid transparent",outline:col===c?"2px solid var(--accent)":"2px solid transparent",outlineOffset:"2px",transition:"all .2s",cursor:"pointer"}}/>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{display:"flex",gap:"10px",marginBottom:"13px",alignItems:"center"}}>
+            <div style={{display:"flex",alignItems:"center",border:"1px solid var(--border2)",borderRadius:"8px",overflow:"hidden"}}>
+              <button onClick={()=>setQty(Math.max(1,qty-1))} style={{background:"var(--card2)",color:"var(--text)",width:"34px",height:"42px",fontSize:"16px",border:"none",cursor:"pointer"}}>−</button>
+              <span style={{padding:"0 13px",fontFamily:"var(--mono)",fontSize:"13px"}}>{qty}</span>
+              <button onClick={()=>setQty(qty+1)} style={{background:"var(--card2)",color:"var(--text)",width:"34px",height:"42px",fontSize:"16px",border:"none",cursor:"pointer"}}>+</button>
+            </div>
+            <button onClick={add} disabled={!p.inStock} style={{flex:1,background:added?"var(--green)":"var(--accent)",color:"#fff",padding:"12px 20px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",fontFamily:"var(--font)",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",transition:"all .3s",opacity:p.inStock?1:.5,border:"none",cursor:p.inStock?"pointer":"not-allowed"}}>
+              {added?<><I.Check/> Added!</>:p.inStock?"Add to Cart ⚡":"Notify Me"}
+            </button>
+            <button onClick={()=>onWish(p.id)} style={{width:"42px",height:"42px",background:"var(--card2)",border:"1px solid var(--border2)",borderRadius:"10px",display:"flex",alignItems:"center",justifyContent:"center",color:iw?"#e94560":"var(--text2)",cursor:"pointer"}}>
+              <I.Heart f={iw}/>
+            </button>
+          </div>
+          <div style={{background:"var(--card2)",border:"1px solid var(--border)",borderRadius:"8px",padding:"10px 12px",fontSize:"11px",color:"var(--text2)",marginBottom:"13px"}}>
+            💳 EMI from <strong style={{color:"var(--accent)"}}>₹{Math.round(p.price/12).toLocaleString()}/mo</strong> · BNPL available · No cost EMI on 12 cards
+          </div>
+          <button style={{background:"#25d36612",border:"1px solid #25d36625",color:"#25d366",padding:"8px 13px",borderRadius:"8px",fontSize:"11px",fontWeight:"600",display:"flex",alignItems:"center",gap:"6px",width:"100%",justifyContent:"center",cursor:"pointer"}}>
+            <I.WA/> Get WhatsApp Updates
+          </button>
+          <div style={{marginTop:"20px",borderTop:"1px solid var(--border)",paddingTop:"16px"}}>
+            <div style={{display:"flex",gap:"4px",marginBottom:"13px",flexWrap:"wrap"}}>
+              {["details","specs","reviews","returns"].map(t=>(
+                <button key={t} onClick={()=>setTab(t)} style={{background:tab===t?"var(--accent)":"var(--card2)",color:tab===t?"#fff":"var(--text3)",padding:"5px 12px",borderRadius:"7px",fontSize:"11px",fontWeight:"600",textTransform:"capitalize",transition:"all .2s",border:"none",cursor:"pointer"}}>{t}</button>
+              ))}
+            </div>
+            {tab==="details"&&(
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px"}}>
+                {Object.entries({Brand:p.brand,Category:p.subcategory,Fabric:p.fabric,Fit:p.fit,Occasion:p.occasion,RAM:p.ram,Storage:p.storage,Processor:p.processor,Battery:p.battery}).filter(([,v])=>v).map(([k,v])=>(
+                  <div key={k} style={{background:"var(--card2)",borderRadius:"7px",padding:"8px 10px"}}>
+                    <div style={{fontSize:"9px",color:"var(--text3)",fontFamily:"var(--mono)",textTransform:"uppercase",marginBottom:"2px"}}>{k}</div>
+                    <div style={{fontSize:"12px",fontWeight:"500"}}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {tab==="specs"&&<p style={{color:"var(--text2)",fontSize:"12px",lineHeight:"1.9"}}>Eco-certified materials. Carbon-neutral shipping. 1-year warranty. 30-day easy returns included.</p>}
+            {tab==="reviews"&&(
+              <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
+                {[{n:"Arjun M.",r:5,t:"Amazing quality! Fast delivery too."},{n:"Priya K.",r:4,t:"Good product. Slightly different shade but great."}].map((rv,i)=>(
+                  <div key={i} style={{background:"var(--card2)",borderRadius:"8px",padding:"10px"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:"3px"}}><span style={{fontSize:"12px",fontWeight:"600"}}>{rv.n}</span><Stars r={rv.r}/></div>
+                    <p style={{fontSize:"11px",color:"var(--text2)"}}>{rv.t}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {tab==="returns"&&<div style={{color:"var(--text2)",fontSize:"12px",lineHeight:"2.1"}}>✓ 30-day easy returns<br/>✓ Free door pickup<br/>✓ Refund in 2-3 days<br/>✓ Free size exchange</div>}
+          </div>
+        </div>
+      </div>
+      {fb.length>0&&(
+        <div style={{marginTop:"40px"}}>
+          <h2 style={{fontFamily:"var(--font)",fontSize:"18px",fontWeight:"700",marginBottom:"13px"}}>Frequently Bought Together</h2>
+          <div style={{display:"flex",gap:"13px",alignItems:"center",flexWrap:"wrap"}}>
+            {[p,...fb].map((item,i)=>(
+              <div key={item.id} style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                {i>0&&<span style={{color:"var(--text3)",fontSize:"17px"}}>+</span>}
+                <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"10px",overflow:"hidden",width:"86px",textAlign:"center"}}>
+                  <img src={item.image} alt="" style={{width:"100%",aspectRatio:"1",objectFit:"cover"}}/>
+                  <div style={{padding:"5px",fontSize:"10px",color:"var(--text2)"}}>{fp(item.price)}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{marginLeft:"13px"}}>
+              <div style={{fontSize:"10px",color:"var(--text3)",marginBottom:"2px"}}>Bundle</div>
+              <div style={{fontFamily:"var(--mono)",fontSize:"16px",fontWeight:"700",color:"var(--accent)"}}>{fp([p,...fb].reduce((s,i)=>s+i.price,0))}</div>
+              <button style={{background:"var(--accent)",color:"#fff",padding:"6px 13px",borderRadius:"7px",fontSize:"11px",fontWeight:"600",marginTop:"6px",border:"none",cursor:"pointer"}}>Add All</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── CART DRAWER ───────────────────────────────────────────────────────────────
+function CartDrawer({cart,onClose,onRemove,onQty,onCheckout}) {
+  const total=cart.reduce((s,i)=>s+i.price*(i.qty||1),0);
+  const saved=cart.reduce((s,i)=>s+(i.originalPrice-i.price)*(i.qty||1),0);
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:1500}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",backdropFilter:"blur(8px)"}} onClick={onClose}/>
+      <div className="su" style={{position:"absolute",right:0,top:0,bottom:0,width:"min(390px,100vw)",background:"var(--bg2)",borderLeft:"1px solid var(--border2)",display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"17px 20px",borderBottom:"1px solid var(--border)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <h2 style={{fontFamily:"var(--font)",fontSize:"16px",fontWeight:"700"}}>Cart <span style={{color:"var(--text3)",fontWeight:"400",fontSize:"12px"}}>({cart.length})</span></h2>
+          <button onClick={onClose} style={{background:"var(--card)",border:"1px solid var(--border)",color:"var(--text2)",width:"30px",height:"30px",borderRadius:"7px",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><I.X/></button>
+        </div>
+        <div style={{flex:1,overflowY:"auto",padding:"13px 20px",display:"flex",flexDirection:"column",gap:"10px"}}>
+          {cart.length===0?(
+            <div style={{textAlign:"center",padding:"50px 0",color:"var(--text3)"}}>
+              <div style={{fontSize:"42px",marginBottom:"10px"}}>🛒</div><p style={{fontSize:"13px"}}>Your cart is empty</p>
+              <button onClick={onClose} style={{background:"var(--accent)",color:"#fff",padding:"8px 16px",borderRadius:"8px",marginTop:"13px",fontSize:"12px",fontWeight:"600",border:"none",cursor:"pointer"}}>Start Shopping</button>
+            </div>
+          ):cart.map((item,i)=>(
+            <div key={i} style={{background:"var(--card)",borderRadius:"10px",padding:"10px",display:"flex",gap:"10px"}}>
+              <img src={item.image} alt="" style={{width:"64px",height:"64px",borderRadius:"6px",objectFit:"cover",flexShrink:0}}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:"10px",color:"var(--text3)",marginBottom:"1px"}}>{item.brand}</div>
+                <div style={{fontWeight:"600",fontSize:"12px",marginBottom:"3px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
+                {item.sz&&<div style={{fontSize:"9px",color:"var(--text3)",marginBottom:"3px"}}>Size: {item.sz}</div>}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span style={{fontFamily:"var(--mono)",fontWeight:"700",fontSize:"13px"}}>{fp(item.price*(item.qty||1))}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
+                    <button onClick={()=>onQty(i,Math.max(1,(item.qty||1)-1))} style={{width:"22px",height:"22px",background:"var(--card2)",color:"var(--text)",borderRadius:"5px",fontSize:"13px",display:"flex",alignItems:"center",justifyContent:"center",border:"none",cursor:"pointer"}}>−</button>
+                    <span style={{fontFamily:"var(--mono)",fontSize:"11px",width:"16px",textAlign:"center"}}>{item.qty||1}</span>
+                    <button onClick={()=>onQty(i,(item.qty||1)+1)} style={{width:"22px",height:"22px",background:"var(--card2)",color:"var(--text)",borderRadius:"5px",fontSize:"13px",display:"flex",alignItems:"center",justifyContent:"center",border:"none",cursor:"pointer"}}>+</button>
+                    <button onClick={()=>onRemove(i)} style={{width:"22px",height:"22px",background:"#ef444418",color:"#ef4444",borderRadius:"5px",display:"flex",alignItems:"center",justifyContent:"center",marginLeft:"3px",border:"none",cursor:"pointer"}}><I.X/></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {cart.length>0&&(
+          <div style={{borderTop:"1px solid var(--border)",padding:"16px 20px"}}>
+            {saved>0&&<div style={{background:"#10b98112",border:"1px solid #10b98123",borderRadius:"7px",padding:"6px 10px",fontSize:"10px",color:"var(--green)",marginBottom:"10px"}}>🎉 You save {fp(saved)}!</div>}
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}><span style={{color:"var(--text2)",fontSize:"11px"}}>Subtotal</span><span style={{fontFamily:"var(--mono)",fontSize:"12px",fontWeight:"600"}}>{fp(total)}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}><span style={{color:"var(--text2)",fontSize:"11px"}}>Delivery</span><span style={{color:"var(--green)",fontSize:"11px"}}>{total>999?"FREE":"₹99"}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:"13px",paddingTop:"8px",borderTop:"1px solid var(--border)"}}>
+              <span style={{fontWeight:"700",fontSize:"14px",fontFamily:"var(--font)"}}>Total</span>
+              <span style={{fontFamily:"var(--mono)",fontWeight:"700",fontSize:"16px"}}>{fp(total+(total>999?0:99))}</span>
+            </div>
+            <button onClick={onCheckout} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"13px",borderRadius:"10px",fontSize:"14px",fontWeight:"700",fontFamily:"var(--font)",display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",border:"none",cursor:"pointer"}}>
+              Checkout →
+            </button>
+            <p style={{textAlign:"center",fontSize:"9px",color:"var(--text3)",marginTop:"8px",display:"flex",alignItems:"center",justifyContent:"center",gap:"3px"}}><I.Lock/> SSL · PCI DSS</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── CHECKOUT ──────────────────────────────────────────────────────────────────
+function Checkout({cart,user,onBack,onSuccess}) {
+  const [step,setStep]=useState(1);
+  const [addr,setAddr]=useState({name:user?.name||"",phone:user?.phone||"",line:"",city:"Alwar",state:"Rajasthan",pin:""});
+  const [pm,setPm]=useState("upi");
+  const [upi,setUpi]=useState("");
+  const [card,setCard]=useState({num:"",exp:"",cvv:"",name:""});
+  const [proc,setProc]=useState(false);
+  const [err,setErr]=useState("");
+  const sub=cart.reduce((s,i)=>s+i.price*(i.qty||1),0);
+  const del=sub>999?0:99;
+  const total=sub+del;
+  const oid="NX"+Date.now().toString().slice(-8);
+
+  const pay=async()=>{
+    setErr("");setProc(true);
+    if(pm==="upi"&&!upi){setErr("Enter UPI ID");setProc(false);return;}
+    if(pm==="card"&&(!card.num||!card.exp||!card.cvv)){setErr("Fill all card fields");setProc(false);return;}
+    await new Promise(r=>setTimeout(r,2600));
+    if(Math.random()<0.95) onSuccess(oid);
+    else{setErr("Payment failed. Please retry.");setProc(false);}
+  };
+
+  const Dot=({n,lbl})=>(
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"3px"}}>
+      <div style={{width:"28px",height:"28px",borderRadius:"50%",background:step>=n?"var(--accent)":"var(--card2)",border:step===n?"2px solid var(--accent)":"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:"700",color:step>=n?"#fff":"var(--text3)",transition:"all .3s"}}>
+        {step>n?<I.Check/>:n}
+      </div>
+      <span style={{fontSize:"9px",color:step>=n?"var(--accent)":"var(--text3)",fontFamily:"var(--mono)",textTransform:"uppercase",letterSpacing:".05em"}}>{lbl}</span>
+    </div>
+  );
+
+  return (
+    <div className="fi" style={{maxWidth:"820px",margin:"0 auto",padding:"26px 20px"}}>
+      <button onClick={onBack} style={{background:"none",color:"var(--text3)",fontSize:"11px",display:"flex",alignItems:"center",gap:"5px",marginBottom:"20px",border:"none",cursor:"pointer"}}><I.Back/> Back to Cart</button>
+      <h1 style={{fontFamily:"var(--font)",fontSize:"21px",fontWeight:"700",marginBottom:"20px"}}>Checkout</h1>
+      <div style={{display:"flex",alignItems:"center",marginBottom:"26px"}}>
+        <Dot n={1} lbl="Address"/>
+        <div style={{flex:1,height:"2px",background:step>=2?"var(--accent)":"var(--border)",transition:"background .3s",margin:"0 6px",marginBottom:"17px"}}/>
+        <Dot n={2} lbl="Payment"/>
+        <div style={{flex:1,height:"2px",background:step>=3?"var(--accent)":"var(--border)",transition:"background .3s",margin:"0 6px",marginBottom:"17px"}}/>
+        <Dot n={3} lbl="Review"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:"18px",alignItems:"start"}}>
+        <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"16px",padding:"24px"}}>
+          {step===1&&(
+            <div className="su">
+              <h2 style={{fontFamily:"var(--font)",fontSize:"16px",fontWeight:"700",marginBottom:"16px"}}>Delivery Address</h2>
+              {user?.addresses?.length>0&&(
+                <div style={{background:"var(--card2)",border:"2px solid var(--accent)",borderRadius:"10px",padding:"12px",marginBottom:"16px",cursor:"pointer"}} onClick={()=>{setAddr({...user.addresses[0],name:user.name,phone:user.phone});setStep(2);}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:"2px"}}><span style={{fontWeight:"600",fontSize:"12px"}}>{user.addresses[0].label}</span><span style={{fontSize:"10px",color:"var(--accent)"}}>Use this →</span></div>
+                  <p style={{fontSize:"11px",color:"var(--text2)"}}>{user.addresses[0].line}, {user.addresses[0].city} – {user.addresses[0].pin}</p>
+                </div>
+              )}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+                <Inp label="Full Name" value={addr.name} onChange={v=>setAddr({...addr,name:v})} placeholder="Rahul Sharma"/>
+                <Inp label="Phone" value={addr.phone} onChange={v=>setAddr({...addr,phone:v})} placeholder="+91 98765 43210"/>
+                <div style={{gridColumn:"1/-1"}}><Inp label="Address" value={addr.line} onChange={v=>setAddr({...addr,line:v})} placeholder="Street, Area, Landmark"/></div>
+                <Inp label="City" value={addr.city} onChange={v=>setAddr({...addr,city:v})} placeholder="Alwar"/>
+                <Inp label="PIN Code" value={addr.pin} onChange={v=>setAddr({...addr,pin:v})} placeholder="301001"/>
+              </div>
+              {err&&<p style={{color:"#ef4444",fontSize:"11px",marginTop:"6px"}}>{err}</p>}
+              <button onClick={()=>{if(!addr.name||!addr.line||!addr.pin){setErr("Fill required fields");return;}setErr("");setStep(2);}} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"11px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",fontFamily:"var(--font)",marginTop:"16px",border:"none",cursor:"pointer"}}>Continue →</button>
+            </div>
+          )}
+          {step===2&&(
+            <div className="su">
+              <h2 style={{fontFamily:"var(--font)",fontSize:"16px",fontWeight:"700",marginBottom:"16px"}}>Payment Method</h2>
+              {[{id:"upi",label:"UPI",icon:"📱",sub:"PhonePe · Google Pay · Paytm"},{id:"card",label:"Credit / Debit Card",icon:"💳",sub:"Visa · Mastercard · Rupay"},{id:"cod",label:"Cash on Delivery",icon:"💵",sub:"Pay at your door"},{id:"bnpl",label:"Buy Now Pay Later",icon:"⏳",sub:"LazyPay · Amazon Pay Later"},{id:"netbanking",label:"Net Banking",icon:"🏦",sub:"All major banks"}].map(m=>(
+                <button key={m.id} onClick={()=>setPm(m.id)} style={{display:"flex",alignItems:"center",gap:"11px",padding:"12px 13px",borderRadius:"10px",border:`1.5px solid ${pm===m.id?"var(--accent)":"var(--border)"}`,background:pm===m.id?"#7c6aff0d":"var(--card2)",width:"100%",marginBottom:"6px",textAlign:"left",transition:"all .2s",cursor:"pointer"}}>
+                  <span style={{fontSize:"18px"}}>{m.icon}</span>
+                  <div style={{flex:1}}><div style={{fontWeight:"600",fontSize:"12px",color:pm===m.id?"var(--accent)":"var(--text)"}}>{m.label}</div><div style={{fontSize:"10px",color:"var(--text3)"}}>{m.sub}</div></div>
+                  <div style={{width:"15px",height:"15px",borderRadius:"50%",border:`2px solid ${pm===m.id?"var(--accent)":"var(--border2)"}`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    {pm===m.id&&<div style={{width:"7px",height:"7px",borderRadius:"50%",background:"var(--accent)"}}/>}
+                  </div>
+                </button>
+              ))}
+              {pm==="upi"&&(
+                <div style={{marginTop:"13px"}}>
+                  <Inp label="UPI ID" value={upi} onChange={setUpi} placeholder="name@paytm"/>
+                  <div style={{display:"flex",gap:"6px",marginTop:"6px",flexWrap:"wrap"}}>
+                    {["@paytm","@oksbi","@ybl","@okhdfcbank"].map(s=><button key={s} onClick={()=>setUpi("user"+s)} style={{background:"var(--card2)",border:"1px solid var(--border)",color:"var(--text3)",padding:"3px 8px",borderRadius:"5px",fontSize:"10px",fontFamily:"var(--mono)",cursor:"pointer"}}>{s}</button>)}
+                  </div>
+                </div>
+              )}
+              {pm==="card"&&(
+                <div style={{marginTop:"13px",display:"flex",flexDirection:"column",gap:"8px"}}>
+                  <Inp label="Card Number" value={card.num} onChange={v=>setCard({...card,num:v})} placeholder="1234 5678 9012 3456"/>
+                  <Inp label="Name on Card" value={card.name} onChange={v=>setCard({...card,name:v})} placeholder="RAHUL SHARMA"/>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+                    <Inp label="Expiry" value={card.exp} onChange={v=>setCard({...card,exp:v})} placeholder="MM/YY"/>
+                    <Inp label="CVV" value={card.cvv} onChange={v=>setCard({...card,cvv:v})} placeholder="123"/>
+                  </div>
+                </div>
+              )}
+              {err&&<div style={{background:"#ef444412",border:"1px solid #ef444428",borderRadius:"7px",padding:"8px",fontSize:"11px",color:"#ef4444",marginTop:"10px"}}>{err}</div>}
+              <button onClick={()=>setStep(3)} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"11px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",fontFamily:"var(--font)",marginTop:"16px",border:"none",cursor:"pointer"}}>Review Order →</button>
+            </div>
+          )}
+          {step===3&&(
+            <div className="su">
+              <h2 style={{fontFamily:"var(--font)",fontSize:"16px",fontWeight:"700",marginBottom:"16px"}}>Review & Confirm</h2>
+              <div style={{background:"var(--card2)",borderRadius:"10px",padding:"12px",marginBottom:"10px"}}>
+                <div style={{fontSize:"9px",color:"var(--text3)",fontFamily:"var(--mono)",textTransform:"uppercase",marginBottom:"4px"}}>Delivering To</div>
+                <p style={{fontSize:"12px",fontWeight:"600"}}>{addr.name}</p>
+                <p style={{fontSize:"11px",color:"var(--text2)"}}>{addr.line}, {addr.city} – {addr.pin}</p>
+                <button onClick={()=>setStep(1)} style={{background:"none",color:"var(--accent)",fontSize:"10px",marginTop:"4px",border:"none",cursor:"pointer"}}>Edit</button>
+              </div>
+              <div style={{background:"var(--card2)",borderRadius:"10px",padding:"12px",marginBottom:"16px"}}>
+                <div style={{fontSize:"9px",color:"var(--text3)",fontFamily:"var(--mono)",textTransform:"uppercase",marginBottom:"4px"}}>Payment</div>
+                <p style={{fontSize:"12px",fontWeight:"600"}}>{({upi:"UPI",card:"Credit/Debit Card",cod:"Cash on Delivery",bnpl:"Buy Now Pay Later",netbanking:"Net Banking"})[pm]}</p>
+                {pm==="upi"&&upi&&<p style={{fontSize:"11px",color:"var(--text2)"}}>{upi}</p>}
+                <button onClick={()=>setStep(2)} style={{background:"none",color:"var(--accent)",fontSize:"10px",marginTop:"4px",border:"none",cursor:"pointer"}}>Change</button>
+              </div>
+              {cart.map((item,i)=>(
+                <div key={i} style={{display:"flex",gap:"8px",marginBottom:"8px"}}>
+                  <img src={item.image} alt="" style={{width:"42px",height:"42px",borderRadius:"6px",objectFit:"cover"}}/>
+                  <div style={{flex:1}}><div style={{fontSize:"11px",fontWeight:"600"}}>{item.name}</div><div style={{fontSize:"10px",color:"var(--text3)"}}>×{item.qty||1}{item.sz?` · ${item.sz}`:""}</div></div>
+                  <span style={{fontFamily:"var(--mono)",fontSize:"11px",fontWeight:"600"}}>{fp(item.price*(item.qty||1))}</span>
+                </div>
+              ))}
+              {err&&<div style={{background:"#ef444412",border:"1px solid #ef444428",borderRadius:"7px",padding:"8px",fontSize:"11px",color:"#ef4444",margin:"10px 0"}}>{err}</div>}
+              <button onClick={pay} disabled={proc} style={{width:"100%",background:proc?"var(--card2)":"var(--green)",color:"#fff",padding:"13px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",fontFamily:"var(--font)",marginTop:"6px",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px",transition:"all .3s",border:"none",cursor:"pointer"}}>
+                {proc?<><Spin/> Processing…</>:<><I.Lock/> Pay {fp(total)} Securely</>}
+              </button>
+              <p style={{textAlign:"center",fontSize:"9px",color:"var(--text3)",marginTop:"8px"}}>Razorpay · PCI DSS · 256-bit SSL</p>
+            </div>
+          )}
+        </div>
+        <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"16px",padding:"16px",position:"sticky",top:"86px"}}>
+          <h3 style={{fontFamily:"var(--font)",fontSize:"14px",fontWeight:"700",marginBottom:"12px"}}>Order Summary</h3>
+          {cart.map((item,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",marginBottom:"6px",fontSize:"10px"}}>
+              <span style={{color:"var(--text2)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",paddingRight:"6px"}}>{item.name} ×{item.qty||1}</span>
+              <span style={{fontFamily:"var(--mono)",flexShrink:0}}>{fp(item.price*(item.qty||1))}</span>
+            </div>
+          ))}
+          <div style={{borderTop:"1px solid var(--border)",paddingTop:"10px",marginTop:"10px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:"10px",marginBottom:"4px"}}><span style={{color:"var(--text2)"}}>Subtotal</span><span style={{fontFamily:"var(--mono)"}}>{fp(sub)}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:"10px",marginBottom:"10px"}}><span style={{color:"var(--text2)"}}>Delivery</span><span style={{color:"var(--green)"}}>{del===0?"FREE":fp(del)}</span></div>
+            <div style={{display:"flex",justifyContent:"space-between",fontWeight:"700",fontSize:"14px"}}><span style={{fontFamily:"var(--font)"}}>Total</span><span style={{fontFamily:"var(--mono)"}}>{fp(total)}</span></div>
+          </div>
+          <div style={{marginTop:"12px",borderTop:"1px solid var(--border)",paddingTop:"11px",textAlign:"center"}}>
+            <div style={{fontSize:"9px",color:"var(--text3)",marginBottom:"6px"}}>Accepted Payments</div>
+            <div style={{display:"flex",justifyContent:"center",gap:"6px",fontSize:"15px"}}>{"📱 💳 🏦 💵 ⏳".split(" ").map((e,i)=><span key={i}>{e}</span>)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ORDER SUCCESS ─────────────────────────────────────────────────────────────
+function Success({oid,onCont}) {
+  return (
+    <div className="fi" style={{maxWidth:"440px",margin:"65px auto",padding:"20px",textAlign:"center"}}>
+      <div style={{width:"72px",height:"72px",background:"#10b98116",border:"2px solid var(--green)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px",margin:"0 auto 20px",animation:"float 3s ease-in-out infinite"}}>✓</div>
+      <h1 style={{fontFamily:"var(--font)",fontSize:"24px",fontWeight:"700",marginBottom:"6px",color:"var(--green)"}}>Order Confirmed!</h1>
+      <p style={{color:"var(--text2)",marginBottom:"20px",fontSize:"12px"}}>Placed successfully. WhatsApp updates coming!</p>
+      <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",padding:"16px",marginBottom:"20px"}}>
+        <div style={{fontSize:"9px",color:"var(--text3)",fontFamily:"var(--mono)",marginBottom:"3px"}}>ORDER ID</div>
+        <div style={{fontFamily:"var(--mono)",fontSize:"18px",fontWeight:"700",color:"var(--accent)",letterSpacing:".1em"}}>{oid}</div>
+        <div style={{marginTop:"12px",display:"flex",flexDirection:"column",gap:"6px",textAlign:"left"}}>
+          {["📦 Packed within 2 hours","🚚 Dispatched today","📍 Delivered by tomorrow, 11 AM","📱 Live tracking on WhatsApp"].map(s=><div key={s} style={{fontSize:"11px",color:"var(--text2)"}}>{s}</div>)}
+        </div>
+      </div>
+      <button style={{background:"#25d36612",border:"1px solid #25d36624",color:"#25d366",padding:"10px 20px",borderRadius:"8px",fontSize:"11px",fontWeight:"600",display:"flex",alignItems:"center",gap:"6px",margin:"0 auto 10px",cursor:"pointer"}}><I.WA/> Track on WhatsApp</button>
+      <button onClick={onCont} style={{background:"var(--accent)",color:"#fff",padding:"10px 28px",borderRadius:"8px",fontSize:"12px",fontWeight:"600",border:"none",cursor:"pointer"}}>Continue Shopping →</button>
+    </div>
+  );
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function Filters({cat,fi,onChange}) {
+  const cf={sizes:["XS","S","M","L","XL","XXL"],fit:["Slim","Regular","Oversized","Athletic"],fabric:["Cotton","Linen","Silk","Denim","Nylon"],occasion:["Casual","Formal","Streetwear","Sports","Party"]};
+  const gf={ram:["4GB","8GB","12GB","16GB"],storage:["32GB","64GB","128GB","256GB","512GB"],subcategory:["audio","wearables","tablets","laptops","cameras","accessories"]};
+  const f=(cat==="clothing"||cat==="deals"&&false)?cf:(cat==="gadgets"?gf:cf);
+  return (
+    <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",padding:"16px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"13px"}}>
+        <h3 style={{fontFamily:"var(--font)",fontSize:"14px",fontWeight:"700",display:"flex",alignItems:"center",gap:"6px"}}><I.Filter/> Filters</h3>
+        <button onClick={()=>onChange({})} style={{background:"none",color:"var(--text3)",fontSize:"10px",border:"none",cursor:"pointer"}}>Clear</button>
+      </div>
+      <div style={{marginBottom:"16px"}}>
+        <div style={{fontSize:"9px",fontWeight:"600",color:"var(--text2)",marginBottom:"6px",fontFamily:"var(--mono)",textTransform:"uppercase"}}>Price Range</div>
+        {[["Under ₹1,000","0-1000"],["₹1K – ₹5K","1000-5000"],["₹5K – ₹20K","5000-20000"],["Above ₹20K","20000-999999"]].map(([l,v])=>(
+          <label key={v} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"11px",color:fi.price===v?"var(--accent)":"var(--text2)"}}>
+            <input type="radio" name="price" checked={fi.price===v} onChange={()=>onChange({...fi,price:v})} style={{accentColor:"var(--accent)"}}/>{l}
+          </label>
+        ))}
+      </div>
+      {Object.entries(f).map(([key,opts])=>(
+        <div key={key} style={{marginBottom:"16px"}}>
+          <div style={{fontSize:"9px",fontWeight:"600",color:"var(--text2)",marginBottom:"6px",fontFamily:"var(--mono)",textTransform:"uppercase"}}>{key}</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:"5px"}}>
+            {opts.map(o=>{const sel=fi[key]===o;return <button key={o} onClick={()=>onChange({...fi,[key]:sel?null:o})} style={{background:sel?"var(--accent)":"var(--card2)",border:`1px solid ${sel?"var(--accent)":"var(--border)"}`,color:sel?"#fff":"var(--text3)",padding:"3px 8px",borderRadius:"5px",fontSize:"10px",transition:"all .2s",cursor:"pointer"}}>{o}</button>;})}
+          </div>
+        </div>
+      ))}
+      <div>
+        <div style={{fontSize:"9px",fontWeight:"600",color:"var(--text2)",marginBottom:"6px",fontFamily:"var(--mono)",textTransform:"uppercase"}}>Min Rating</div>
+        {[4.5,4,3.5].map(r=>(
+          <label key={r} style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"5px",cursor:"pointer",fontSize:"11px",color:fi.rating===r?"var(--accent)":"var(--text2)"}}>
+            <input type="radio" name="rating" checked={fi.rating===r} onChange={()=>onChange({...fi,rating:r})} style={{accentColor:"var(--accent)"}}/>{r}+ ★
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── CATEGORY PAGE ─────────────────────────────────────────────────────────────
+function CatPage({cat,sq,wish,onWish,onView,onCart}) {
+  const [fi,setFi]=useState({});
+  const [sort,setSort]=useState("popular");
+  const [showF,setShowF]=useState(true);
+
+  let prods=PRODUCTS.filter(p=>{
+    if(cat==="deals") return disc(p.originalPrice,p.price)>=20;
+    if(cat==="all") return true;
+    if(cat==="search") return p.name.toLowerCase().includes(sq.toLowerCase())||p.brand.toLowerCase().includes(sq.toLowerCase());
+    return p.category===cat;
+  });
+  if(fi.price){const [mn,mx]=fi.price.split("-").map(Number);prods=prods.filter(p=>p.price>=mn&&p.price<=mx);}
+  if(fi.rating) prods=prods.filter(p=>p.rating>=fi.rating);
+  if(fi.fit) prods=prods.filter(p=>p.fit===fi.fit);
+  if(fi.fabric) prods=prods.filter(p=>p.fabric===fi.fabric);
+  if(fi.occasion) prods=prods.filter(p=>p.occasion===fi.occasion);
+  if(fi.subcategory) prods=prods.filter(p=>p.subcategory===fi.subcategory);
+  if(fi.ram) prods=prods.filter(p=>p.ram===fi.ram);
+  if(fi.storage) prods=prods.filter(p=>p.storage===fi.storage);
+  if(fi.sizes) prods=prods.filter(p=>p.sizes&&p.sizes.includes(fi.sizes));
+
+  const sorted=[...prods].sort((a,b)=>{
+    if(sort==="price-low") return a.price-b.price;
+    if(sort==="price-high") return b.price-a.price;
+    if(sort==="rating") return b.rating-a.rating;
+    if(sort==="discount") return disc(b.originalPrice,b.price)-disc(a.originalPrice,a.price);
+    return b.soldCount-a.soldCount;
+  });
+
+  const lbl={clothing:"Clothing",gadgets:"Gadgets",deals:"🔥 Hot Deals",all:"All Products",search:`"${sq}"`}[cat]||"Products";
+
+  return (
+    <div style={{maxWidth:"1340px",margin:"0 auto",padding:"26px 20px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px",flexWrap:"wrap",gap:"10px"}}>
+        <div><h1 style={{fontFamily:"var(--font)",fontSize:"21px",fontWeight:"700"}}>{lbl}</h1><p style={{color:"var(--text3)",fontSize:"11px",marginTop:"1px"}}>{sorted.length} products</p></div>
+        <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
+          <button onClick={()=>setShowF(!showF)} style={{background:"var(--card)",border:"1px solid var(--border)",color:"var(--text2)",padding:"6px 12px",borderRadius:"8px",fontSize:"11px",display:"flex",alignItems:"center",gap:"5px",cursor:"pointer"}}>
+            <I.Filter/> Filters{Object.values(fi).filter(Boolean).length>0?` (${Object.values(fi).filter(Boolean).length})`:""}
+          </button>
+          <select value={sort} onChange={e=>setSort(e.target.value)} style={{background:"var(--card)",border:"1px solid var(--border)",color:"var(--text)",padding:"6px 12px",borderRadius:"8px",fontSize:"11px",outline:"none",cursor:"pointer"}}>
+            <option value="popular">Popular</option>
+            <option value="price-low">Price: Low ↑</option>
+            <option value="price-high">Price: High ↓</option>
+            <option value="rating">Top Rated</option>
+            <option value="discount">Best Deal</option>
+          </select>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:showF?"210px 1fr":"1fr",gap:"16px",alignItems:"start"}}>
+        {showF&&<Filters cat={cat} fi={fi} onChange={setFi}/>}
+        {sorted.length===0?(
+          <div style={{textAlign:"center",padding:"68px",color:"var(--text3)"}}>
+            <div style={{fontSize:"42px",marginBottom:"10px"}}>🔍</div>
+            <p style={{marginBottom:"10px",fontSize:"13px"}}>No products match your filters.</p>
+            <button onClick={()=>setFi({})} style={{background:"var(--accent)",color:"#fff",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"600",border:"none",cursor:"pointer"}}>Clear Filters</button>
+          </div>
+        ):(
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(185px,1fr))",gap:"13px"}}>
+            {sorted.map(p=><PCard key={p.id} p={p} onView={onView} onCart={onCart} wish={wish} onWish={onWish}/>)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── VISUAL SEARCH ─────────────────────────────────────────────────────────────
+function VS({onBack,onProd}) {
+  const [up,setUp]=useState(null);
+  const [res,setRes]=useState([]);
+  const [searching,setSearching]=useState(false);
+  const [drag,setDrag]=useState(false);
+  const sim=async()=>{setSearching(true);await new Promise(r=>setTimeout(r,1900));setRes(PRODUCTS.filter(p=>p.category==="clothing").slice(0,4));setSearching(false);};
+  return (
+    <div className="fi" style={{maxWidth:"620px",margin:"0 auto",padding:"26px 20px"}}>
+      <button onClick={onBack} style={{background:"none",color:"var(--text3)",fontSize:"11px",display:"flex",alignItems:"center",gap:"5px",marginBottom:"20px",border:"none",cursor:"pointer"}}><I.Back/> Back</button>
+      <h1 style={{fontFamily:"var(--font)",fontSize:"24px",fontWeight:"700",marginBottom:"6px"}}>Visual Search 📸</h1>
+      <p style={{color:"var(--text2)",marginBottom:"24px",fontSize:"12px"}}>Upload a photo to find similar items in our store</p>
+      <div onDragOver={e=>{e.preventDefault();setDrag(true)}} onDragLeave={()=>setDrag(false)}
+        onDrop={e=>{e.preventDefault();setDrag(false);setUp(URL.createObjectURL(e.dataTransfer.files[0]));setTimeout(sim,300);}}
+        style={{border:`2px dashed ${drag?"var(--accent)":"var(--border2)"}`,borderRadius:"16px",padding:"42px",textAlign:"center",background:drag?"#7c6aff07":"var(--card)",transition:"all .3s",cursor:"pointer"}}
+        onClick={()=>{const i=document.createElement("input");i.type="file";i.accept="image/*";i.onchange=e=>{setUp(URL.createObjectURL(e.target.files[0]));setTimeout(sim,300)};i.click()}}>
+        {up?(
+          <div><img src={up} alt="" style={{maxWidth:"170px",maxHeight:"170px",borderRadius:"10px",objectFit:"cover",marginBottom:"10px"}}/><p style={{color:"var(--green)",fontSize:"12px"}}>Analyzing image…</p></div>
+        ):(
+          <div><div style={{fontSize:"34px",marginBottom:"10px",display:"flex",justifyContent:"center",color:"var(--text3)"}}><I.Up/></div><p style={{color:"var(--text2)",marginBottom:"6px",fontSize:"12px"}}>Drop image or click to upload</p><p style={{color:"var(--text3)",fontSize:"10px"}}>JPG · PNG · WEBP</p></div>
+        )}
+      </div>
+      {searching&&<div style={{textAlign:"center",padding:"26px",display:"flex",flexDirection:"column",alignItems:"center",gap:"10px",color:"var(--text2)"}}><Spin/><p style={{fontSize:"12px"}}>Finding similar items…</p></div>}
+      {res.length>0&&(
+        <div style={{marginTop:"26px"}}>
+          <h2 style={{fontFamily:"var(--font)",fontSize:"16px",fontWeight:"700",marginBottom:"13px"}}>Similar Items</h2>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"13px"}}>
+            {res.map(p=>(
+              <div key={p.id} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"10px",overflow:"hidden",cursor:"pointer"}} onClick={()=>onProd(p)}>
+                <img src={p.image} alt="" style={{width:"100%",aspectRatio:"1",objectFit:"cover"}}/>
+                <div style={{padding:"10px"}}><div style={{fontSize:"11px",fontWeight:"600",marginBottom:"2px"}}>{p.name}</div><div style={{fontFamily:"var(--mono)",fontSize:"12px",fontWeight:"700"}}>{fp(p.price)}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ACCOUNT ───────────────────────────────────────────────────────────────────
+function Account({user,onLogout,orders}) {
+  const [tab,setTab]=useState("orders");
+  return (
+    <div className="fi" style={{maxWidth:"820px",margin:"0 auto",padding:"26px 20px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:"13px",marginBottom:"24px",background:"var(--card)",border:"1px solid var(--border)",borderRadius:"16px",padding:"16px 20px"}}>
+        <div style={{width:"48px",height:"48px",background:"var(--accent)",borderRadius:"12px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"17px",fontWeight:"700",flexShrink:0,color:"#fff"}}>{user.avatar}</div>
+        <div style={{flex:1}}><h2 style={{fontFamily:"var(--font)",fontSize:"18px",fontWeight:"700"}}>{user.name}</h2><p style={{color:"var(--text3)",fontSize:"11px"}}>{user.email}</p></div>
+        <button onClick={onLogout} style={{background:"#ef444412",border:"1px solid #ef444426",color:"#ef4444",padding:"6px 13px",borderRadius:"7px",fontSize:"11px",fontWeight:"600",cursor:"pointer"}}>Sign Out</button>
+      </div>
+      <div style={{display:"flex",gap:"6px",marginBottom:"16px"}}>
+        {["orders","addresses","settings"].map(t=>(
+          <button key={t} onClick={()=>setTab(t)} style={{background:tab===t?"var(--accent)":"var(--card)",border:`1px solid ${tab===t?"var(--accent)":"var(--border)"}`,color:tab===t?"#fff":"var(--text2)",padding:"6px 15px",borderRadius:"8px",fontSize:"11px",fontWeight:"600",textTransform:"capitalize",transition:"all .2s",cursor:"pointer"}}>{t}</button>
+        ))}
+      </div>
+      {tab==="orders"&&(orders.length===0?(
+        <div style={{textAlign:"center",padding:"50px",color:"var(--text3)"}}><div style={{fontSize:"42px",marginBottom:"10px"}}>📦</div><p style={{fontSize:"13px"}}>No orders yet. Start shopping!</p></div>
+      ):orders.map(o=>(
+        <div key={o.id} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",padding:"14px",marginBottom:"10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{fontFamily:"var(--mono)",fontWeight:"700",color:"var(--accent)",fontSize:"12px"}}>{o.id}</div><div style={{fontSize:"10px",color:"var(--text3)",marginTop:"2px"}}>{o.date} · {o.items} items</div></div>
+          <div style={{textAlign:"right"}}><div style={{fontFamily:"var(--mono)",fontWeight:"700",marginBottom:"3px",fontSize:"13px"}}>{fp(o.total)}</div><span style={{background:"#10b98116",color:"var(--green)",fontSize:"9px",padding:"2px 7px",borderRadius:"5px",fontFamily:"var(--mono)"}}>{o.status}</span></div>
+        </div>
+      )))}
+      {tab==="addresses"&&((user.addresses||[]).length>0?(user.addresses.map((a,i)=>(
+        <div key={i} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",padding:"14px",marginBottom:"10px"}}>
+          <div style={{fontWeight:"600",marginBottom:"2px",fontSize:"13px"}}>{a.label}</div>
+          <div style={{fontSize:"11px",color:"var(--text2)"}}>{a.line}, {a.city}, {a.state} – {a.pin}</div>
+        </div>
+      ))):<p style={{color:"var(--text3)",textAlign:"center",padding:"32px",fontSize:"12px"}}>No saved addresses</p>)}
+      {tab==="settings"&&(
+        <div style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",padding:"16px"}}>
+          <h3 style={{fontFamily:"var(--font)",fontSize:"14px",fontWeight:"600",marginBottom:"13px"}}>Notifications</h3>
+          {["WhatsApp updates","Email promotions","SMS alerts","App notifications"].map(s=>(
+            <div key={s} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid var(--border)"}}>
+              <span style={{fontSize:"12px"}}>{s}</span>
+              <div style={{width:"40px",height:"22px",background:"var(--accent)",borderRadius:"11px",display:"flex",alignItems:"center",padding:"2px",cursor:"pointer"}}>
+                <div style={{width:"18px",height:"18px",borderRadius:"50%",background:"#fff",marginLeft:"auto"}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── WISHLIST PAGE ─────────────────────────────────────────────────────────────
+function Wishlist({wish,onRemove,onView,onCart}) {
+  const items=PRODUCTS.filter(p=>wish.includes(p.id));
+  return (
+    <div className="fi" style={{maxWidth:"1120px",margin:"0 auto",padding:"26px 20px"}}>
+      <h1 style={{fontFamily:"var(--font)",fontSize:"24px",fontWeight:"700",marginBottom:"20px"}}>Wishlist <span style={{color:"var(--text3)",fontWeight:"400",fontSize:"14px"}}>({items.length})</span></h1>
+      {items.length===0?(
+        <div style={{textAlign:"center",padding:"68px",color:"var(--text3)"}}><div style={{fontSize:"52px",marginBottom:"13px"}}>💝</div><p style={{fontSize:"13px"}}>Your wishlist is empty</p></div>
+      ):(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(195px,1fr))",gap:"16px"}}>
+          {items.map(p=>(
+            <div key={p.id} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"14px",overflow:"hidden"}}>
+              <div style={{position:"relative",aspectRatio:"1",cursor:"pointer"}} onClick={()=>onView(p)}>
+                <img src={p.image} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                <button onClick={e=>{e.stopPropagation();onRemove(p.id)}} style={{position:"absolute",top:"7px",right:"7px",background:"rgba(0,0,0,.55)",border:"none",color:"#e94560",width:"27px",height:"27px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",cursor:"pointer"}}>×</button>
+              </div>
+              <div style={{padding:"10px"}}>
+                <div style={{fontSize:"9px",color:"var(--text3)",marginBottom:"1px"}}>{p.brand}</div>
+                <div style={{fontWeight:"600",fontSize:"12px",marginBottom:"5px"}}>{p.name}</div>
+                <div style={{fontFamily:"var(--mono)",fontWeight:"700",marginBottom:"6px",fontSize:"13px"}}>{fp(p.price)}</div>
+                <button onClick={()=>onCart(p)} style={{width:"100%",background:"var(--accent)",color:"#fff",padding:"6px",borderRadius:"7px",fontSize:"11px",fontWeight:"600",border:"none",cursor:"pointer"}}>Add to Cart</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function Home({onShop,onView,onCart,wish,onWish}) {
+  const trending=[...PRODUCTS].sort((a,b)=>b.soldCount-a.soldCount).slice(0,6);
+  const newArr=PRODUCTS.filter(p=>["NEW","NEW LAUNCH"].includes(p.badge));
+  const deals=PRODUCTS.filter(p=>disc(p.originalPrice,p.price)>=25);
+
+  const Sec=({title,emoji,prods,cat})=>(
+    <div style={{padding:"0 20px",maxWidth:"1340px",margin:"0 auto 40px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
+        <h2 style={{fontFamily:"var(--font)",fontSize:"19px",fontWeight:"700"}}>{emoji} {title}</h2>
+        <button onClick={()=>onShop(cat)} style={{background:"none",color:"var(--accent)",fontSize:"11px",fontWeight:"600",display:"flex",alignItems:"center",gap:"3px",border:"none",cursor:"pointer"}}>View All <I.Arr/></button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:"13px"}}>
+        {prods.map(p=><PCard key={p.id} p={p} onView={onView} onCart={onCart} wish={wish} onWish={onWish}/>)}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fi">
+      <Hero onShop={onShop}/>
+      <div style={{padding:"30px 20px",maxWidth:"1340px",margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(105px,1fr))",gap:"10px"}}>
+          {[{icon:"👕",label:"Tops",cat:"clothing"},{icon:"👖",label:"Bottoms",cat:"clothing"},{icon:"👗",label:"Dresses",cat:"clothing"},{icon:"🎧",label:"Audio",cat:"gadgets"},{icon:"⌚",label:"Wearables",cat:"gadgets"},{icon:"💻",label:"Laptops",cat:"gadgets"},{icon:"📸",label:"Cameras",cat:"gadgets"},{icon:"🔥",label:"Hot Deals",cat:"deals"}].map(c=>(
+            <button key={c.label} onClick={()=>onShop(c.cat)} style={{background:"var(--card)",border:"1px solid var(--border)",borderRadius:"12px",padding:"13px 7px",display:"flex",flexDirection:"column",alignItems:"center",gap:"5px",transition:"all .2s",color:"var(--text)",cursor:"pointer"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.background="var(--card2)"}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="var(--card)"}}>
+              <span style={{fontSize:"21px"}}>{c.icon}</span>
+              <span style={{fontSize:"10px",fontWeight:"600"}}>{c.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <Sec title="Trending Now" emoji="🔥" prods={trending} cat="all"/>
+      <Sec title="New Arrivals" emoji="✨" prods={newArr} cat="all"/>
+      <Sec title="Best Deals" emoji="⚡" prods={deals} cat="deals"/>
+      <div style={{background:"var(--card2)",borderTop:"1px solid var(--border)",padding:"26px 20px",marginBottom:"36px"}}>
+        <div style={{maxWidth:"1340px",margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))",gap:"18px"}}>
+          {[{icon:"🚚",t:"Free Delivery",s:"Orders above ₹999"},{icon:"🔄",t:"Easy Returns",s:"30-day hassle-free"},{icon:"🔒",t:"Secure Payment",s:"PCI DSS compliant"},{icon:"💬",t:"24/7 Support",s:"WhatsApp & chat"},{icon:"⚡",t:"Same Day Delivery",s:"Alwar & Jaipur"}].map(f=>(
+            <div key={f.t} style={{display:"flex",alignItems:"center",gap:"10px"}}>
+              <span style={{fontSize:"24px"}}>{f.icon}</span>
+              <div><div style={{fontWeight:"600",fontSize:"12px"}}>{f.t}</div><div style={{fontSize:"10px",color:"var(--text3)"}}>{f.s}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [page,setPage]=useState("home");
+  const [user,setUser]=useState(null);
+  const [cart,setCart]=useState([]);
+  const [wish,setWish]=useState([]);
+  const [orders,setOrders]=useState([]);
+  const [showAuth,setShowAuth]=useState(false);
+  const [showCart,setShowCart]=useState(false);
+  const [checkout,setCheckout]=useState(false);
+  const [selProd,setSelProd]=useState(null);
+  const [sq,setSq]=useState("");
+  const [oid,setOid]=useState(null);
+  const [shopCat,setShopCat]=useState("all");
+
+  const nav=p=>{
+    if(p==="account"&&!user){setShowAuth(true);return;}
+    setPage(p);setSelProd(null);setShowCart(false);setCheckout(false);
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const search=q=>{setSq(q);setShopCat("search");setPage("shop");setSelProd(null);};
+  const shop=c=>{setShopCat(c);setPage("shop");setSelProd(null);window.scrollTo({top:0});};
+  const view=p=>{setSelProd(p);setPage("product");window.scrollTo({top:0,behavior:"smooth"});};
+  const addCart=p=>{
+    setCart(c=>{
+      const exists=c.findIndex(i=>i.id===p.id);
+      if(exists>=0){const n=[...c];n[exists]={...n[exists],qty:(n[exists].qty||1)+1};return n;}
+      return [...c,{...p,qty:p.qty||1}];
+    });
+  };
+  const toggleWish=id=>setWish(w=>w.includes(id)?w.filter(i=>i!==id):[...w,id]);
+  const doCheckout=()=>{if(!user){setShowAuth(true);return;}setShowCart(false);setCheckout(true);};
+  const onSuccess=o=>{
+    setOid(o);
+    setOrders(prev=>[{id:o,date:new Date().toLocaleDateString("en-IN"),items:cart.length,total:cart.reduce((s,i)=>s+i.price*(i.qty||1),0),status:"Confirmed"},...prev]);
+    setCart([]);setCheckout(false);setPage("success");
+  };
+  const rmCart=i=>setCart(c=>c.filter((_,idx)=>idx!==i));
+  const qCart=(i,q)=>setCart(c=>c.map((it,idx)=>idx===i?{...it,qty:q}:it));
+
+  return (
+    <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+      <Navbar cart={cart} user={user} onAuth={()=>setShowAuth(true)} onCartClick={()=>setShowCart(true)} onSearch={search} onNav={nav} wish={wish} page={page}/>
+      <main style={{paddingTop:page==="home"?"0":"86px"}}>
+        {page==="home"&&<Home onShop={shop} onView={view} onCart={addCart} wish={wish} onWish={toggleWish}/>}
+        {page==="shop"&&<CatPage cat={shopCat} sq={sq} wish={wish} onWish={toggleWish} onView={view} onCart={addCart}/>}
+        {["clothing","gadgets","deals"].includes(page)&&<CatPage cat={page} sq="" wish={wish} onWish={toggleWish} onView={view} onCart={addCart}/>}
+        {page==="product"&&selProd&&<PDetail p={selProd} onBack={()=>{setPage("shop");window.scrollTo({top:0});}} onCart={addCart} wish={wish} onWish={toggleWish} all={PRODUCTS}/>}
+        {page==="wishlist"&&<Wishlist wish={wish} onRemove={toggleWish} onView={view} onCart={addCart}/>}
+        {page==="account"&&user&&<Account user={user} onLogout={()=>{setUser(null);setPage("home");}} orders={orders}/>}
+        {page==="vs"&&<VS onBack={()=>setPage("home")} onProd={view}/>}
+        {checkout&&<Checkout cart={cart} user={user} onBack={()=>{setCheckout(false);setShowCart(true);}} onSuccess={onSuccess}/>}
+        {page==="success"&&<Success oid={oid} onCont={()=>setPage("home")}/>}
+      </main>
+      {!checkout&&page!=="success"&&(
+        <footer style={{borderTop:"1px solid var(--border)",padding:"32px 20px",background:"var(--bg2)"}}>
+          <div style={{maxWidth:"1340px",margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:"26px"}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:"6px",marginBottom:"10px"}}>
+                <div style={{width:"24px",height:"24px",background:"var(--accent)",borderRadius:"5px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:"800",fontFamily:"var(--font)",color:"#fff"}}>N</div>
+                <span style={{fontFamily:"var(--font)",fontWeight:"800",fontSize:"16px"}}>NEXUS</span>
+              </div>
+              <p style={{fontSize:"10px",color:"var(--text3)",lineHeight:"1.9"}}>The future of shopping. Clothing & gadgets with AR, AI & lightning delivery.</p>
+            </div>
+            {[{t:"Shop",l:["Clothing","Gadgets","New Arrivals","Deals"]},{t:"Help",l:["Track Order","Returns","FAQ","Contact"]},{t:"Company",l:["About","Blog","Careers","Press"]}].map(c=>(
+              <div key={c.t}><div style={{fontFamily:"var(--font)",fontWeight:"600",fontSize:"11px",marginBottom:"10px"}}>{c.t}</div>{c.l.map(l=><div key={l} style={{fontSize:"10px",color:"var(--text3)",marginBottom:"5px",cursor:"pointer"}}>{l}</div>)}</div>
+            ))}
+            <div>
+              <div style={{fontFamily:"var(--font)",fontWeight:"600",fontSize:"11px",marginBottom:"10px"}}>Newsletter</div>
+              <div style={{display:"flex",gap:"6px"}}>
+                <input placeholder="your@email.com" style={{background:"var(--card)",border:"1px solid var(--border)",color:"var(--text)",padding:"6px 10px",borderRadius:"6px",fontSize:"10px",flex:1,outline:"none"}}/>
+                <button style={{background:"var(--accent)",color:"#fff",padding:"6px 10px",borderRadius:"6px",fontSize:"11px",fontWeight:"600",border:"none",cursor:"pointer"}}>→</button>
+              </div>
+              <div style={{marginTop:"10px",fontSize:"9px",color:"var(--text3)"}}>Razorpay · PCI DSS · SSL Secured</div>
+            </div>
+          </div>
+          <div style={{borderTop:"1px solid var(--border)",marginTop:"24px",paddingTop:"16px",textAlign:"center",fontSize:"10px",color:"var(--text3)"}}>
+            © 2026 NEXUS Store · Built by DAOVAST Developers, Alwar, Rajasthan
+          </div>
+        </footer>
+      )}
+      {showAuth&&<Auth onClose={()=>setShowAuth(false)} onLogin={u=>{setUser(u);setShowAuth(false);}}/>}
+      {showCart&&!checkout&&<CartDrawer cart={cart} onClose={()=>setShowCart(false)} onRemove={rmCart} onQty={qCart} onCheckout={doCheckout}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
